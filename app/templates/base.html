@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}My English Vocabulary Training{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+  <nav class="navbar">
+    <a class="nav-logo" href="/">🚀 MyVocab</a>
+    <ul class="nav-links">
+      <li><a href="/"         class="{% if request.path == '/' %}active{% endif %}">Accueil</a></li>
+      <li><a href="/about"    class="{% if request.path == '/about' %}active{% endif %}">À propos</a></li>
+      <li><a href="/add"      class="{% if request.path == '/add' %}active{% endif %}">Ajouter / Supprimer</a></li>
+      <li><a href="/training" class="{% if request.path == '/training' %}active{% endif %}">Training</a></li>
+      <li><a href="/list"     class="{% if request.path == '/list' %}active{% endif %}">Liste complète</a></li>
+    </ul>
+    <div class="nav-auth">
+      {% if session.get('username') %}
+        <span class="nav-user">👤 {{ session['username'] }}</span>
+        {% if session.get('role') == 'admin' %}
+          <a href="/admin" class="btn btn-admin btn-sm">🛡️ Admin</a>
+        {% endif %}
+        <a href="/settings" class="btn btn-outline btn-sm nav-settings">⚙️ Paramètres</a>
+        <a href="/logout" class="btn btn-logout btn-sm">🚪 Déconnexion</a>
+      {% else %}
+        <a href="/login"    class="btn btn-outline btn-sm">Connexion</a>
+        <a href="/register" class="btn btn-primary btn-sm">S'inscrire</a>
+      {% endif %}
+    </div>
+  </nav>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="flash-bar">
+        {% for category, msg in messages %}
+          <div class="flash flash-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+</body>
+</html>

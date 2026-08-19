@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}Créer un compte – MyVocab{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card card-panel">
+    <div class="auth-logo">🚀</div>
+    <h2>Créer un compte</h2>
+    <p class="auth-sub">Sauvegarde ta progression et retrouve tes mots à tout moment.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ 'error' if category == 'error' else 'success' }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    <form method="POST" action="/register" autocomplete="off">
+      <div class="form-group">
+        <label for="username">Pseudo</label>
+        <input id="username" name="username" type="text" placeholder="ex: choukri18"
+               value="{{ form_username or '' }}"
+               data-testid="input-username" required />
+      </div>
+      <div class="form-group">
+        <label for="email">Adresse email</label>
+        <input id="email" name="email" type="email" placeholder="ex: choukri@email.com"
+               value="{{ form_email or '' }}"
+               data-testid="input-email" required />
+        <small class="field-hint">Utilisée uniquement pour récupérer ton mot de passe.</small>
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe <small>(6 caractères min.)</small></label>
+        <input id="password" name="password" type="password" placeholder="••••••••"
+               data-testid="input-password" required />
+      </div>
+      <div class="form-group">
+        <label for="confirm">Confirmer le mot de passe</label>
+        <input id="confirm" name="confirm" type="password" placeholder="••••••••"
+               data-testid="input-confirm" required />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full" data-testid="btn-register">
+        ✅ Créer mon compte
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      Déjà un compte ? <a href="/login">Se connecter</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% block title %}Liste complète – MyVocab{% endblock %}
+{% block body_class %}page-list{% endblock %}
+
+{% block content %}
+<div class="library-bg">📚</div>
+
+<div class="page-container">
+  <div class="list-header">
+    <h2 class="page-title">📚 Liste complète</h2>
+    <button id="btn-brain" class="btn-brain" data-testid="btn-brain" onclick="toggleStats()">
+      🧠 <span id="brain-count">{{ stats.mastered_words }}</span> maîtrisés
+    </button>
+  </div>
+
+  <!-- Stats panel -->
+  <div id="stats-panel" class="stats-panel card-panel hidden" data-testid="stats-panel">
+    <h3>🧠 Statistiques d'apprentissage</h3>
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-number" data-testid="stat-total">{{ stats.total_words }}</div>
+        <div class="stat-label">Mots total</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number" data-testid="stat-mastered">{{ stats.mastered_words }}</div>
+        <div class="stat-label">Mots maîtrisés</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number" data-testid="stat-success">{{ stats.success_rate }}%</div>
+        <div class="stat-label">Taux de réussite</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-number" data-testid="stat-questions">{{ stats.total_questions }}</div>
+        <div class="stat-label">Questions répondues</div>
+      </div>
+    </div>
+    <div class="progress-bar-container">
+      {% if stats.total_words > 0 %}
+      <div class="progress-bar" style="width: {{ (stats.mastered_words / stats.total_words * 100)|round|int }}%"></div>
+      {% else %}
+      <div class="progress-bar" style="width: 0%"></div>
+      {% endif %}
+    </div>
+    <p class="progress-label">
+      {% if stats.total_words > 0 %}
+        {{ (stats.mastered_words / stats.total_words * 100)|round|int }}% des mots maîtrisés
+      {% else %}
+        Aucun mot enregistré
+      {% endif %}
+    </p>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-bar">
+    <input
+      type="text"
+      id="search-input"
+      placeholder="🔍 Rechercher un mot…"
+      data-testid="search-input"
+      oninput="filterWords()"
+    />
+  </div>
+
+  <!-- Word list -->
+  {% if words %}
+  <div class="word-table" id="word-table">
+    <div class="word-table-header">
+      <span>🇬🇧 Anglais</span>
+      <span>🇫🇷 Français</span>
+      <span style="text-align:center">Maîtrisé</span>
+      <span style="text-align:center">Définition</span>
+      <span style="text-align:center">Supprimer</span>
+    </div>
+    {% for word in words %}
+    <div class="word-table-row {% if word.mastered %}row-mastered{% endif %}"
+         id="row-{{ word.id }}"
+         data-testid="word-row-{{ word.id }}"
+         data-english="{{ word.english }}"
+         data-french="{{ word.french }}">
+      <span class="word-english">{{ word.english }}</span>
+      <span class="word-french">{{ word.french }}</span>
+      <span class="master-toggle">
+        <input
+          type="checkbox"
+          id="master-{{ word.id }}"
+          data-testid="master-checkbox-{{ word.id }}"
+          {% if word.mastered %}checked{% endif %}
+          onchange="toggleMaster({{ word.id }}, this)"
+        />
+        <label for="master-{{ word.id }}" class="master-label">
+          {% if word.mastered %}✅{% else %}⬜{% endif %}
+        </label>
+      </span>
+      <span style="text-align:center">
+        <a
+          href="https://www.larousse.fr/dictionnaires/anglais-francais/{{ word.english }}"
+          target="_blank"
+          class="def-link"
+          data-testid="def-link-{{ word.id }}"
+        >📖</a>
+      </span>
+      <span style="text-align:center">
+        <button
+          type="button"
+          class="btn-delete-list"
+          data-testid="delete-btn-{{ word.id }}"
+          onclick='deleteWord({{ word.id }}, {{ word.english | tojson }})'
+        >🗑️</button>
+      </span>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state" data-testid="empty-state">
+    <p>Aucun mot enregistré.</p>
+    <a href="/add" class="btn btn-primary">Ajouter mon premier mot</a>
+  </div>
+  {% endif %}
+
+</div>
+
+<script>
+var _deleteId = null;
+
+function deleteWord(id, name) {
+  if (!confirm("Supprimer « " + name + " » de ta liste ?")) return;
+  fetch("/api/words/" + id, { method: "DELETE" }).then(function(res) {
+    if (res.ok) {
+      var row = document.getElementById("row-" + id);
+      if (row) row.remove();
+    }
+  });
+}
+
+// ── Stats ────────────────────────────────────────────────────────
+function toggleStats() {
+  document.getElementById("stats-panel").classList.toggle("hidden");
+}
+
+// ── Maîtrisé ─────────────────────────────────────────────────────
+async function toggleMaster(id, checkbox) {
+  const res  = await fetch("/api/words/" + id + "/master", { method: "PATCH" });
+  const data = await res.json();
+  const row   = checkbox.closest(".word-table-row");
+  const label = checkbox.nextElementSibling;
+  if (data.mastered) { row.classList.add("row-mastered");    label.textContent = "✅"; }
+  else               { row.classList.remove("row-mastered"); label.textContent = "⬜"; }
+  const s = await (await fetch("/api/stats")).json();
+  document.getElementById("brain-count").textContent = s.mastered_words;
+  var el;
+  el = document.querySelector('[data-testid="stat-mastered"]');  if(el) el.textContent = s.mastered_words;
+  el = document.querySelector('[data-testid="stat-total"]');     if(el) el.textContent = s.total_words;
+  el = document.querySelector('[data-testid="stat-success"]');   if(el) el.textContent = s.success_rate + "%";
+  el = document.querySelector('[data-testid="stat-questions"]'); if(el) el.textContent = s.total_questions;
+}
+
+// ── Recherche ─────────────────────────────────────────────────────
+function filterWords() {
+  const q = document.getElementById("search-input").value.toLowerCase();
+  document.querySelectorAll(".word-table-row").forEach(function(row) {
+    const en = (row.dataset.english || "").toLowerCase();
+    const fr = (row.dataset.french  || "").toLowerCase();
+    row.style.display = (en.includes(q) || fr.includes(q)) ? "" : "none";
+  });
+}
+</script>
+{% endblock %}

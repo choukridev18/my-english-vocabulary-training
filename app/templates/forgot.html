@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Mot de passe oublié – MyVocab{% endblock %}
+{% block body_class %}page-auth{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+  <div class="auth-card card-panel">
+    <div class="auth-logo">🔑</div>
+    <h2>Mot de passe ou pseudo oublié ?</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, msg in messages %}
+        <div class="alert alert-{{ category }}">{{ msg }}</div>
+      {% endfor %}
+    {% endwith %}
+
+    {% if not found_user %}
+      {# ── Étape 1 : saisir l'email ── #}
+      <p class="auth-sub">Entre ton adresse email pour retrouver ton compte.</p>
+      <form method="POST" action="/forgot" autocomplete="off">
+        <input type="hidden" name="action" value="lookup" />
+        <div class="form-group">
+          <label for="email">Adresse email</label>
+          <input id="email" name="email" type="email"
+                 value="{{ form_email or '' }}"
+                 placeholder="L'email utilisé lors de l'inscription"
+                 data-testid="input-email-forgot" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" data-testid="btn-forgot-lookup">
+          🔍 Rechercher mon compte
+        </button>
+      </form>
+
+    {% else %}
+      {# ── Étape 2 : pseudo trouvé + nouveau mot de passe ── #}
+      <div class="forgot-found">
+        <p>Compte trouvé 👤</p>
+        <p class="found-username">{{ found_user.username }}</p>
+      </div>
+      <p class="auth-sub">Choisis un nouveau mot de passe.</p>
+      <form method="POST" action="/forgot" autocomplete="off">
+        <input type="hidden" name="action" value="reset" />
+        <input type="hidden" name="email"  value="{{ found_user.email }}" />
+        <div class="form-group">
+          <label for="new_password">Nouveau mot de passe <small>(6 caractères min.)</small></label>
+          <input id="new_password" name="new_password" type="password"
+                 placeholder="••••••••" data-testid="input-new-password" required />
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">Confirmer le mot de passe</label>
+          <input id="confirm_password" name="confirm_password" type="password"
+                 placeholder="••••••••" data-testid="input-confirm-password" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" data-testid="btn-forgot-reset">
+          ✅ Réinitialiser le mot de passe
+        </button>
+      </form>
+    {% endif %}
+
+    <p class="auth-switch">
+      Tu t'en souviens ? <a href="/login">Se connecter</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

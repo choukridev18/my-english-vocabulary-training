@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}Ajouter / Supprimer – MyVocab{% endblock %}
+{% block body_class %}page-add{% endblock %}
+
+{% block content %}
+
+<!-- Left: Add symbol -->
+<div class="side-symbol side-left">
+  <span class="side-icon">➕</span>
+  <span class="side-word">Ajouter</span>
+  <span class="side-word-en">Add</span>
+</div>
+<!-- Right: Delete symbol -->
+<div class="side-symbol side-right">
+  <span class="side-icon">➖</span>
+  <span class="side-word">Supprimer</span>
+  <span class="side-word-en">Delete</span>
+</div>
+<div class="trowel-bg">🔩</div>
+
+<div class="page-container">
+  <h2 class="page-title">✏️ Ajouter / Supprimer un mot</h2>
+
+  <!-- Add form -->
+  <div class="card-panel">
+    <h3>Ajouter un nouveau mot</h3>
+    <div id="add-error" class="alert alert-error hidden" data-testid="add-error"></div>
+    <div id="add-success" class="alert alert-success hidden" data-testid="add-success"></div>
+    <form id="add-form" data-testid="add-form" autocomplete="off">
+      <div class="form-group">
+        <label for="english">Mot en anglais</label>
+        <input id="english" name="english" type="text" placeholder="ex: relentless"
+               data-testid="input-english" required />
+      </div>
+      <div class="form-group">
+        <label for="french">Traduction en français</label>
+        <input id="french" name="french" type="text" placeholder="ex: implacable"
+               data-testid="input-french" required />
+        <small class="field-hint">💡 Plusieurs traductions acceptées ? Sépare-les par <strong>/</strong> &nbsp;ex : <em>house / home</em></small>
+      </div>
+      <button type="submit" class="btn btn-primary" data-testid="btn-add">
+        ➕ Ajouter
+      </button>
+    </form>
+  </div>
+
+  <!-- Word list for deletion -->
+  <div class="card-panel">
+    <h3>Supprimer un mot</h3>
+    <div id="word-list-delete" data-testid="word-list-delete">
+      <p class="loading-msg">Chargement…</p>
+    </div>
+  </div>
+</div>
+
+<!-- Custom delete confirmation modal -->
+<div class="modal-overlay" id="delete-modal">
+  <div class="modal-box">
+    <div class="modal-icon">🗑️</div>
+    <h3>Supprimer ce mot ?</h3>
+    <div class="modal-word" id="modal-word-label"></div>
+    <p class="modal-sub">Cette action est irréversible.</p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="modal-cancel" data-testid="modal-cancel">Annuler</button>
+      <button class="btn btn-danger" id="modal-confirm" data-testid="modal-confirm">🗑 Supprimer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = "/api/words";
+
+/* ── Modal logic ── */
+let pendingDeleteId   = null;
+let pendingDeleteRow  = null;
+
+const modal       = document.getElementById("delete-modal");
+const modalWord   = document.getElementById("modal-word-label");
+const modalCancel = document.getElementById("modal-cancel");
+const modalConfirm= document.getElementById("modal-confirm");
+
+function openModal(id, row, wordText) {
+  pendingDeleteId  = id;
+  pendingDeleteRow = row;
+  modalWord.textContent = wordText;
+  modal.classList.add("visible");
+}
+
+function closeModal() {
+  modal.classList.remove("visible");
+  pendingDeleteId  = null;
+  pendingDeleteRow = null;
+}
+
+modalCancel.addEventListener("click", closeModal);
+modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
+
+modalConfirm.addEventListener("click", async () => {
+  if (!pendingDeleteId) return;
+  modalConfirm.disabled = true;
+  const res = await fetch(`${API}/${pendingDeleteId}`, { method: "DELETE" });
+  if (res.ok) {
+    pendingDeleteRow.remove();
+    const container = document.getElementById("word-list-delete");
+    if (!container.querySelector(".word-row")) {
+      container.innerHTML = '<p class="empty-msg">Aucun mot enregistré.</p>';
+    }
+  }
+  modalConfirm.disabled = false;
+  closeModal();
+});
+
+/* ── Word list ── */
+async function loadWords() {
+  const res   = await fetch(API);
+  const words = await res.json();
+  const container = document.getElementById("word-list-delete");
+
+  if (!words.length) {
+    container.innerHTML = '<p class="empty-msg">Aucun mot enregistré.</p>';
+    return;
+  }
+
+  container.innerHTML = words.map(w => `
+    <div class="word-row" data-testid="word-row-${w.id}">
+      <span class="word-en">${w.english}</span>
+      <span class="word-sep">→</span>
+      <span class="word-fr">${w.french}</span>
+      <button class="btn btn-danger btn-sm" data-testid="btn-delete-${w.id}"
+              onclick="openModal(${w.id}, this.closest('.word-row'), '${w.english}')">
+        🗑 Supprimer
+      </button>
+    </div>
+  `).join("");
+}
+
+/* ── Add form ── */
+document.getElementById("add-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const errorEl   = document.getElementById("add-error");
+  const successEl = document.getElementById("add-success");
+  errorEl.classList.add("hidden");
+  successEl.classList.add("hidden");
+
+  const english = document.getElementById("english").value.trim();
+  const french  = document.getElementById("french").value.trim();
+
+  const res  = await fetch(API, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ english, french }),
+  });
+  const data = await res.json();
+
+  if (!res.ok) {
+    errorEl.textContent = data.error;
+    errorEl.classList.remove("hidden");
+  } else {
+    successEl.textContent = `"${data.english}" ajouté avec succès !`;
+    successEl.classList.remove("hidden");
+    document.getElementById("add-form").reset();
+    loadWords();
+  }
+});
+
+loadWords();
+</script>
+{% endblock %}

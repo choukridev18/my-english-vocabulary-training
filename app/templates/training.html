@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+{% block title %}Training – MyVocab{% endblock %}
+{% block body_class %}page-training{% endblock %}
+
+{% block content %}
+<div class="bag-bg bag-right">🥊</div>
+<div class="bag-bg bag-left">🥊</div>
+
+<div class="page-container">
+
+  <!-- Config screen -->
+  <div id="config-screen" class="training-screen">
+    <h2 class="page-title">🥊 Training</h2>
+    <div class="config-grid">
+
+      <div class="config-section card-panel">
+        <h3>Mode de révision</h3>
+        <label class="radio-card">
+          <input type="radio" name="mode" value="continuous" data-testid="mode-continuous" checked />
+          <span>♾️ Continu</span>
+          <small>Ne s'arrête jamais</small>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="mode" value="lives" data-testid="mode-lives" />
+          <span>❤️ 10 vies</span>
+          <small>Perds une vie à chaque erreur</small>
+        </label>
+      </div>
+
+      <div class="config-section card-panel">
+        <h3>Type d'entraînement</h3>
+        <label class="radio-card">
+          <input type="radio" name="type" value="en_to_fr" data-testid="type-en-fr" checked />
+          <span>🇬🇧 → 🇫🇷</span>
+          <small>Anglais → Français</small>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="type" value="fr_to_en" data-testid="type-fr-en" />
+          <span>🇫🇷 → 🇬🇧</span>
+          <small>Français → Anglais</small>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="type" value="mix" data-testid="type-mix" />
+          <span>🔀 Mix</span>
+          <small>Les deux aléatoirement</small>
+        </label>
+      </div>
+
+    </div>
+    <button id="btn-start" class="btn btn-primary btn-large" data-testid="btn-start">
+      🚀 Lancer le training
+    </button>
+    <div id="empty-warning" class="empty-warning hidden" data-testid="empty-warning">
+      📭 Ta liste est vide ou tous tes mots sont maîtrisés.<br>
+      <a href="/add" class="btn btn-primary" style="margin-top:0.8rem;display:inline-block">✏️ Ajouter des mots</a>
+    </div>
+  </div>
+
+  <!-- Quiz screen -->
+  <div id="quiz-screen" class="training-screen hidden">
+    <div class="quiz-header">
+      <div id="lives-display" data-testid="lives-display"></div>
+      <div id="score-display" data-testid="score-display">Score : 0 / 0</div>
+      <button id="btn-quit" class="btn btn-outline" data-testid="btn-quit">✖ Quitter</button>
+    </div>
+
+    <div id="quiz-card" class="quiz-card card-panel">
+      <div id="direction-label" class="direction-label" data-testid="direction-label"></div>
+      <div id="question-word" class="question-word" data-testid="question-word"></div>
+      <a id="word-link" href="#" target="_blank" class="word-def-link" data-testid="word-link">
+        📖 Voir la définition
+      </a>
+      <form id="quiz-form">
+        <input
+          id="answer-input"
+          type="text"
+          placeholder="Ta traduction…"
+          data-testid="answer-input"
+          autocomplete="off"
+          required
+        />
+        <button type="submit" class="btn btn-primary" data-testid="btn-validate">
+          ✓ Valider
+        </button>
+      </form>
+      <div id="feedback" class="feedback hidden" data-testid="feedback"></div>
+      <button id="btn-next" class="btn btn-secondary hidden" data-testid="btn-next">
+        Mot suivant →
+      </button>
+    </div>
+  </div>
+
+  <!-- Result screen -->
+  <div id="result-screen" class="training-screen hidden">
+    <div class="result-card card-panel">
+      <div id="result-icon" class="result-icon">🏆</div>
+      <h2 id="result-title">Session terminée !</h2>
+      <div id="result-details" class="result-details" data-testid="result-details"></div>
+      <button id="btn-restart" class="btn btn-primary btn-large" data-testid="btn-restart">
+        🔄 Recommencer
+      </button>
+      <a href="/" class="btn btn-outline btn-large">🏠 Accueil</a>
+    </div>
+  </div>
+
+</div>
+
+
+<script>
+let words = [];
+let queue = [];
+let quizMode = "continuous";
+let quizType = "en_to_fr";
+let lives = 10;
+let correct = 0;
+let incorrect = 0;
+let currentWord = null;
+let currentDirection = null;
+
+const $ = id => document.getElementById(id);
+
+function show(id) {
+  ["config-screen","quiz-screen","result-screen"].forEach(s => {
+    document.getElementById(s).classList.add("hidden");
+  });
+  document.getElementById(id).classList.remove("hidden");
+}
+
+$("btn-start").addEventListener("click", async () => {
+  quizMode = document.querySelector('input[name="mode"]:checked').value;
+  quizType = document.querySelector('input[name="type"]:checked').value;
+
+  const res = await fetch("/api/words/quiz");
+  words = await res.json();
+
+  if (!words.length) {
+    document.getElementById("empty-warning").classList.remove("hidden");
+    return;
+  }
+  document.getElementById("empty-warning").classList.add("hidden");
+
+  lives = 10;
+  correct = 0;
+  incorrect = 0;
+  queue = shuffle([...words]);
+  show("quiz-screen");
+  updateLivesDisplay();
+  nextWord();
+});
+
+$("btn-quit").addEventListener("click", () => {
+  if (confirm("Abandonner le quiz ? Tes résultats seront sauvegardés.")) showResults();
+});
+
+$("btn-next").addEventListener("click", () => {
+  $("btn-next").classList.add("hidden");
+  $("feedback").classList.add("hidden");
+  $("answer-input").value = "";
+  $("answer-input").disabled = false;
+  $("quiz-form").querySelector("button").disabled = false;
+  nextWord();
+});
+
+$("btn-restart").addEventListener("click", () => show("config-screen"));
+
+$("quiz-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const answer = $("answer-input").value.trim().toLowerCase();
+  const rawExpected = currentDirection === "en_to_fr"
+    ? currentWord.french.toLowerCase()
+    : currentWord.english.toLowerCase();
+
+  // Accept any answer separated by " / " (ex: "house / home")
+  const validAnswers = rawExpected.split("/").map(s => s.trim()).filter(Boolean);
+  const isCorrect = validAnswers.includes(answer);
+
+  const feedbackEl = $("feedback");
+  feedbackEl.classList.remove("hidden","correct","incorrect");
+
+  if (isCorrect) {
+    correct++;
+    feedbackEl.textContent = "✅ Correct !";
+    feedbackEl.classList.add("correct");
+  } else {
+    incorrect++;
+    if (quizMode === "lives") {
+      lives--;
+      updateLivesDisplay();
+    }
+    const expected = validAnswers.join(" ou ");
+    feedbackEl.textContent = `❌ Faux ! La bonne réponse : "${expected}"`;
+    feedbackEl.classList.add("incorrect");
+  }
+
+  $("answer-input").disabled = true;
+  $("quiz-form").querySelector("button").disabled = true;
+  $("btn-next").classList.remove("hidden");
+  $("score-display").textContent = `Score : ${correct} / ${correct + incorrect}`;
+
+  if (quizMode === "lives" && lives <= 0) {
+    setTimeout(showResults, 1200);
+  }
+});
+
+function nextWord() {
+  if (!queue.length) {
+    if (quizMode === "continuous") {
+      queue = shuffle([...words]);
+    } else {
+      showResults();
+      return;
+    }
+  }
+  currentWord = queue.shift();
+
+  if (quizType === "en_to_fr") {
+    currentDirection = "en_to_fr";
+  } else if (quizType === "fr_to_en") {
+    currentDirection = "fr_to_en";
+  } else {
+    currentDirection = Math.random() < 0.5 ? "en_to_fr" : "fr_to_en";
+  }
+
+  if (currentDirection === "en_to_fr") {
+    $("direction-label").textContent = "🇬🇧 Traduis en français";
+    $("question-word").textContent = currentWord.english;
+    $("word-link").href = `https://www.larousse.fr/dictionnaires/anglais-francais/${currentWord.english}`;
+  } else {
+    $("direction-label").textContent = "🇫🇷 Traduis en anglais";
+    $("question-word").textContent = currentWord.french;
+    $("word-link").href = `https://www.larousse.fr/dictionnaires/francais-anglais/${currentWord.french}`;
+  }
+
+  $("answer-input").focus();
+}
+
+function updateLivesDisplay() {
+  const el = $("lives-display");
+  if (quizMode === "lives") {
+    el.innerHTML = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 10 - lives));
+    el.style.display = "block";
+  } else {
+    el.style.display = "none";
+  }
+}
+
+async function showResults() {
+  show("result-screen");
+  const total = correct + incorrect;
+  const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+
+  $("result-details").innerHTML = `
+    <p>✅ Bonnes réponses : <strong>${correct}</strong></p>
+    <p>❌ Mauvaises réponses : <strong>${incorrect}</strong></p>
+    <p>📊 Taux de réussite : <strong>${pct}%</strong></p>
+  `;
+
+  if (pct >= 80) {
+    $("result-icon").textContent = "🏆";
+    $("result-title").textContent = "Excellent !";
+  } else if (pct >= 50) {
+    $("result-icon").textContent = "👍";
+    $("result-title").textContent = "Bien joué !";
+  } else {
+    $("result-icon").textContent = "💪";
+    $("result-title").textContent = "Continue à t'entraîner !";
+  }
+
+  await fetch("/api/quiz/save", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ correct, incorrect, mode: quizMode }),
+  });
+}
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+</script>
+{% endblock %}

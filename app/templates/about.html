@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}À propos – MyVocab{% endblock %}
+{% block body_class %}page-about{% endblock %}
+
+{% block content %}
+<div class="page-container">
+  <h2 class="page-title">💡 À propos de My English Vocabulary Training</h2>
+
+  <div class="about-grid">
+
+    <div class="card-panel about-card">
+      <div class="about-icon">🎯</div>
+      <h3>C'est quoi cette appli ?</h3>
+      <p>
+        <strong>My English Vocabulary Training</strong> est un outil personnel pour mémoriser
+        les mots anglais que <em>tu as toi-même choisis</em> d'apprendre.
+        Ce n'est pas un dictionnaire ni un cours : c'est ta propre banque de mots,
+        construite au fil de tes lectures, films, séries ou conversations.
+      </p>
+    </div>
+
+    <div class="card-panel about-card">
+      <div class="about-icon">🧠</div>
+      <h3>À quoi ça sert exactement ?</h3>
+      <p>
+        L'objectif est simple : quand tu rencontres un mot anglais que tu ne connais pas,
+        tu l'ajoutes ici avec sa traduction. Ensuite tu t'entraînes régulièrement pour
+        le mémoriser, jusqu'à pouvoir le réutiliser naturellement dans une phrase, à l'écrit ou à l'oral.
+      </p>
+    </div>
+
+    <div class="card-panel about-card">
+      <div class="about-icon">🔄</div>
+      <h3>Comment ça marche ?</h3>
+      <ul class="about-list">
+        <li>📝 <strong>Ajoute</strong> des mots anglais avec leur traduction française</li>
+        <li>🥊 <strong>Entraîne-toi</strong> en mode Anglais → Français, Français → Anglais, ou Mix</li>
+        <li>♾️ <strong>Mode continu</strong> : la session ne s'arrête jamais</li>
+        <li>❤️ <strong>Mode 10 vies</strong> : tu as 10 erreurs avant la fin</li>
+        <li>✅ <strong>Coche un mot comme maîtrisé</strong> pour l'exclure du quiz</li>
+        <li>📖 <strong>Clique sur un mot</strong> pour voir sa définition complète sur WordReference</li>
+      </ul>
+    </div>
+
+    <div class="card-panel about-card">
+      <div class="about-icon">💬</div>
+      <h3>Le principe de construction de phrases</h3>
+      <p>
+        Apprendre un mot ne suffit pas : il faut le <em>réutiliser</em>.
+        Chaque mot que tu maîtrises devient une brique pour construire des phrases plus riches.
+        Cette appli te donne la base — à toi ensuite de les mettre en pratique dans de vraies conversations !
+      </p>
+    </div>
+
+    <div class="card-panel about-card">
+      <div class="about-icon">📊</div>
+      <h3>Suivre ta progression</h3>
+      <p>
+        Dans la <strong>Liste complète</strong>, clique sur le bouton 🧠 pour voir :
+        combien de mots tu as appris, combien tu considères maîtrisés,
+        et ton taux de réussite moyen sur tous tes quiz.
+      </p>
+    </div>
+
+    <div class="card-panel about-card">
+      <div class="about-icon">🚀</div>
+      <h3>Conseil pour bien progresser</h3>
+      <p>
+        Fais <strong>10 à 15 minutes par jour</strong> de training.
+        Ajoute les mots au fur et à mesure de tes rencontres avec l'anglais.
+        Ne cherche pas à tout apprendre d'un coup — la régularité est ta meilleure alliée.
+      </p>
+    </div>
+
+  </div>
+
+  <div class="about-cta">
+    <a href="/add" class="btn btn-primary btn-large">✏️ Ajouter mon premier mot</a>
+    <a href="/training" class="btn btn-secondary btn-large">🥊 Lancer un training</a>
+  </div>
+</div>
+{% endblock %}

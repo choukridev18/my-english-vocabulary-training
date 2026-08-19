@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}My English Vocabulary Training{% endblock %}
+{% block body_class %}page-home{% endblock %}
+
+{% block content %}
+<div class="hero">
+  <div class="rocket-bg">
+  <span class="rocket-emoji">🚀</span>
+</div>
+<div class="flag-bg flag-left">🇫🇷</div>
+<div class="flag-bg flag-right">🇬🇧</div>
+  <div class="hero-content">
+    <h1 class="hero-title">My English Vocabulary<br><span>Training</span></h1>
+    <p class="hero-sub">Entraîne ton anglais mot par mot.<br>Ajoute, révise, maîtrise.</p>
+    <div class="hero-cards">
+
+      <a href="/add" class="hero-card" data-testid="card-add">
+        <div class="card-icon">✏️</div>
+        <div class="card-label">Ajouter / Supprimer</div>
+        <div class="card-desc">Gère ton vocabulaire</div>
+      </a>
+
+      <a href="/training" class="hero-card" data-testid="card-training">
+        <div class="card-icon">🥊</div>
+        <div class="card-label">Training</div>
+        <div class="card-desc">Lance un quiz</div>
+      </a>
+
+      <a href="/list" class="hero-card" data-testid="card-list">
+        <div class="card-icon">📚</div>
+        <div class="card-label">Liste complète</div>
+        <div class="card-desc">Tous tes mots</div>
+      </a>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
