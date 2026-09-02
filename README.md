@@ -2,6 +2,8 @@
 
 Application web de révision de vocabulaire anglais — développée en Python/Flask et couverte par une stratégie de test complète.
 
+🔗 **Application en ligne : [choukri.pythonanywhere.com](https://choukri.pythonanywhere.com)**
+
 ---
 
 ## L'application
