@@ -504,6 +504,7 @@ def admin_toggle_role(uid):
     return redirect(url_for("admin_dashboard"))
 
 
+init_db()
+
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True, port=5002)
