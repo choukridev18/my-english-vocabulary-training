@@ -166,6 +166,92 @@ Un workflow automatique se déclenche à chaque `push` sur `main` :
 
 ---
 
+### Évolution de `conftest.py` — de local à CI/CD
+
+**Version initiale** (fonctionnelle en local) :
+
+```python
+import pytest
+import sqlite3
+from playwright.sync_api import Page
+
+BASE_URL = "http://127.0.0.1:5002"
+
+@pytest.fixture
+def app_url():
+    return BASE_URL
+
+@pytest.fixture
+def login_in_page(page: Page, app_url):
+    page.goto(f"{app_url}/login")
+    page.locator("#username").fill("testuser")
+    page.locator("#password").fill("test1234!")
+    page.get_by_role("button", name="🔑 Se connecter").click()
+    return page
+
+@pytest.fixture
+def new_user():
+    username = "test_register"
+    yield username
+    conn = sqlite3.connect("app/vocabulary.db")
+    conn.execute("DELETE FROM users WHERE username = ?", (username,))
+    conn.commit()
+    conn.close()
+
+@pytest.fixture
+def new_word():
+    word = "testword"
+    yield word
+    conn = sqlite3.connect("app/vocabulary.db")
+    conn.execute("DELETE FROM words WHERE english = ?", (word,))
+    conn.commit()
+    conn.close()
+```
+
+**Problème découvert en CI** : en local, `testuser` existait déjà dans la base. En CI, la base démarre vide — aucun utilisateur. Le fixture `login_in_page` essayait de se connecter avec un compte inexistant.
+
+**Version finale** (compatible CI/CD) :
+
+```python
+import pytest
+import sqlite3
+import time
+import requests
+from playwright.sync_api import Page
+
+BASE_URL = "http://127.0.0.1:5002"
+
+@pytest.fixture(scope="session", autouse=True)
+def create_test_user():
+    """Crée testuser avant les tests — indispensable en CI où la DB démarre vide."""
+    for _ in range(10):
+        try:
+            requests.post(
+                f"{BASE_URL}/register",
+                data={
+                    "username": "testuser",
+                    "email": "testuser@ci.local",
+                    "password": "test1234!",
+                    "confirm": "test1234!",
+                },
+                timeout=5,
+            )
+            break
+        except requests.exceptions.ConnectionError:
+            time.sleep(2)
+```
+
+**Ce qui a changé et pourquoi :**
+
+| Ajout | Raison |
+|---|---|
+| `scope="session"` | S'exécute une seule fois pour toute la session, pas à chaque test |
+| `autouse=True` | Démarre automatiquement sans l'ajouter dans chaque test |
+| `requests.post("/register")` | Crée `testuser` via l'API avant que les tests en aient besoin |
+| Boucle `for _ in range(10)` | Attend que Flask soit prêt si le serveur démarre lentement en CI |
+
+---
+
 ## Déploiement
 
 L'application est déployée sur **Render** :
