@@ -210,7 +210,7 @@ def new_word():
 
 **Problème découvert en CI** : en local, `testuser` existait déjà dans la base. En CI, la base démarre vide — aucun utilisateur. Le fixture `login_in_page` essayait de se connecter avec un compte inexistant.
 
-**Version finale** (compatible CI/CD) :
+**Version finale** (compatible CI/CD — améliorée avec aide IA pour la partie `create_test_user`) :
 
 ```python
 import pytest
