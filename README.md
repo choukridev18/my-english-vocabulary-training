@@ -254,11 +254,11 @@ def create_test_user():
 
 ## Déploiement
 
-L'application est déployée sur **Render** :
+L'application est déployée sur **PythonAnywhere** :
 
-🔗 *(lien à ajouter après déploiement)*
+🔗 [https://choukri.pythonanywhere.com](https://choukri.pythonanywhere.com)
 
-> L'application utilise SQLite. Sur Render (plan gratuit), les données peuvent se réinitialiser après une période d'inactivité.
+> L'application utilise SQLite avec stockage persistant. Les données sont conservées entre les sessions.
 
 ---
 
