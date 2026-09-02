@@ -233,3 +233,14 @@ my-english-vocabulary-training/
 - Pattern Page Object Model et fixtures avec teardown
 - Tests de performance avec JMeter (Thread Group, Listeners, métriques)
 - Identification et documentation de bugs (reproduction, impact, correction)
+- Utilisation de l'IA (Cursor / Claude) comme outil de travail — débogage assisté, explication de concepts, génération de code commentée et comprise
+
+---
+
+## Utilisation de l'IA dans ce projet
+
+Certaines parties de ce projet ont été réalisées avec l'aide d'un assistant IA (Cursor / Claude), utilisé comme un **Tech Lead virtuel** : explication des concepts, suggestion de structure, débogage des erreurs Playwright, configuration du CI/CD.
+
+Cette approche reflète la réalité du travail en équipe : un junior s'appuie sur les plus expérimentés pour monter en compétence, comprendre les décisions techniques et débloquer les situations complexes. L'objectif n'était pas de déléguer, mais d'apprendre — chaque ligne de code a été lue, comprise et validée.
+
+Maîtriser les outils IA disponibles (GitHub Copilot, Cursor, ChatGPT) fait partie des compétences attendues d'un QA en 2026.
