@@ -1,9 +1,31 @@
 import pytest
 import sqlite3
+import time
+import requests
 from playwright.sync_api import Page
 
 
 BASE_URL = "http://127.0.0.1:5002"
+
+
+@pytest.fixture(scope="session", autouse=True)
+def create_test_user():
+    """Crée testuser avant les tests — indispensable en CI où la DB démarre vide."""
+    for _ in range(10):
+        try:
+            requests.post(
+                f"{BASE_URL}/register",
+                data={
+                    "username": "testuser",
+                    "email": "testuser@ci.local",
+                    "password": "test1234!",
+                    "confirm": "test1234!",
+                },
+                timeout=5,
+            )
+            break
+        except requests.exceptions.ConnectionError:
+            time.sleep(2)
 
 
 @pytest.fixture
