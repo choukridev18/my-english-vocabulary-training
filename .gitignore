@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.Python
+*.egg-info/
+
+# Base de données
+app/vocabulary.db-shm
+app/vocabulary.db-wal
+
+# Pytest
+.pytest_cache/
+report.html
+
+# Playwright
+test-results/
+playwright-report/
+
+# JMeter
+jmeter.log
+
+# Environnement virtuel
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/

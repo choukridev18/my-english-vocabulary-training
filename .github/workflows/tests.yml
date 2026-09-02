@@ -1,0 +1,43 @@
+name: Tests E2E Playwright
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le code
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installer les dépendances
+        run: pip install -r requirements.txt
+
+      - name: Installer les navigateurs Playwright
+        run: playwright install chromium --with-deps
+
+      - name: Lancer le serveur Flask en arrière-plan
+        run: |
+          python app/server.py &
+          sleep 3
+        env:
+          FLASK_ENV: testing
+
+      - name: Lancer les tests
+        run: pytest --html=report.html --self-contained-html
+
+      - name: Sauvegarder le rapport
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rapport-pytest
+          path: report.html

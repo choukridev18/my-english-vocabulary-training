@@ -47,6 +47,7 @@
   <!-- Word list for deletion -->
   <div class="card-panel">
     <h3>Supprimer un mot</h3>
+    <div id="delete-success" class="alert alert-success hidden" data-testid="delete-success"></div>
     <div id="word-list-delete" data-testid="word-list-delete">
       <p class="loading-msg">Chargement…</p>
     </div>
@@ -100,11 +101,16 @@ modalConfirm.addEventListener("click", async () => {
   modalConfirm.disabled = true;
   const res = await fetch(`${API}/${pendingDeleteId}`, { method: "DELETE" });
   if (res.ok) {
+    const wordText = pendingDeleteRow.querySelector(".word-en").textContent;
     pendingDeleteRow.remove();
     const container = document.getElementById("word-list-delete");
     if (!container.querySelector(".word-row")) {
       container.innerHTML = '<p class="empty-msg">Aucun mot enregistré.</p>';
     }
+    const successEl = document.getElementById("delete-success");
+    successEl.textContent = `"${wordText}" supprimé avec succès !`;
+    successEl.classList.remove("hidden");
+    setTimeout(() => successEl.classList.add("hidden"), 3000);
   }
   modalConfirm.disabled = false;
   closeModal();
