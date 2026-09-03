@@ -98,7 +98,7 @@ def register_page():
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
+        username = request.form.get("username", "").strip().lower()
         email    = request.form.get("email",    "").strip().lower()
         password = request.form.get("password", "").strip()
         confirm  = request.form.get("confirm",  "").strip()
@@ -146,7 +146,7 @@ def login_page():
         return redirect(url_for("index"))
 
     if request.method == "POST":
-        username = request.form.get("username", "").strip()
+        username = request.form.get("username", "").strip().lower()
         password = request.form.get("password", "").strip()
 
         db   = get_db()
