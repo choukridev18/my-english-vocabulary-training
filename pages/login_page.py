@@ -15,7 +15,7 @@ class LoginPage:
         self.page.get_by_label("Pseudo").fill(user)
 
     def fill_password(self, password) -> None:
-        self.page.get_by_label("Mot de passe").fill(password)
+        self.page.get_by_test_id("input-password").fill(password)
 
     def submit(self):
         self.page.locator("[data-testid='btn-login']").click()
